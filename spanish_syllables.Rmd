@@ -1,0 +1,267 @@
+---
+title: "Spanish syllable organization"
+output: html_notebook
+---
+Run for emptying the environment
+```{r}
+rm(list = ls()) 
+```
+
+### Load needed packages
+
+```{r}
+library(psych)
+library(xtable) #for texy tables
+library(ggplot2)
+library(ez)
+
+```
+
+### Loading data, cleaning, adding stress- and CCV-column
+
+```{r}
+vp08 <- read.table("results/data/vp08_Antonia_new_copy.csv", header = TRUE, sep=";")
+vp09 <- read.table("results/data/vp09_copy.csv", header = TRUE, sep=";")
+
+vp08$SPEAKER <- as.factor("vp08")
+vp09$SPEAKER <- as.factor("vp09")
+```
+
+### Creating new dataframe for ease of computation
+
+```{r}
+easyfun <- function(df, anc = "MAXC..ms.") {
+  
+  df$SEGMENT <- sub("C2.+", "C2", df$SEGMENT) # substitute C2z (etc.) with only C2
+  df$SEGMENT <- sub("CODA.+", "CODA", df$SEGMENT) # substitute CODAxy (etc.) with only CODA
+  
+  if(df$SPEAKER[1] == "vp09"){
+    df <- subset(df, SOURCE != "doblen_10"&SOURCE != "polen_07") # those instances are not fully labeled
+  }
+  
+  df <- df[c("SOURCE", "TRAJ", "SEGMENT", "GONS..ms.", "NONS..ms.", "MAXC..ms.", "NOFFS..ms.", "GOFFS..ms.", "SPEAKER")]
+  df$STRESS <- 0
+  df$STRESS[grepl(".*l.r.*|saplen.*", df$SOURCE )] <- 1 #all stressed items end in r, except Saplén
+
+  df$CCV <- 0
+  df$CCV[grepl(".*pl|.*bl", df$SOURCE )] <- 1
+  
+  nei <- aggregate(df$STRESS, list(df$SOURCE), mean)
+  colnames(nei) <- c("SOURCE", "STRESS")
+  #add CCV-column back since it got lost while aggregating - there surely is a better way to do this
+  nei$CCV <- 0
+  nei$CCV[grepl(".*pl|.*bl", nei$SOURCE )] <- 1
+  
+  # add RE
+  nei$RE <- df[df$SEGMENT == "C2", "NOFFS..ms."]
+  
+  # add anchor
+  nei$ANC <- df[df$SEGMENT == "CODA", anc] # could be also Nons OR spatial extremum of vowel (see paper)
+  
+  # add LE -> conditional on CV or CCV
+  nei[nei$CCV == 1, "LE"] <- df[df$SEGMENT == "C1", "NONS..ms."]
+  nei[nei$CCV == 0, "LE"] <- df[df$SEGMENT == "C2"&df$CCV == 0, "NONS..ms."]
+
+  # add C-Center
+  nei$CC <- nei$LE + ((nei$RE-nei$LE)/2)
+  
+  # add IPI for CCVs
+  # make CCV subframe
+  
+  ccv_df <- df[df$CCV == 1,]
+  nei$normIPI <- NA
+  #C2 target(NONS) - C1 release (NOFFS) / RE - LE 
+  nei[nei$CCV == 1, "normIPI"] <- (ccv_df[ccv_df$SEGMENT == "C2", "NONS..ms."] - ccv_df[ccv_df$SEGMENT == "C1", "NOFFS..ms."]) / (nei[nei$CCV == 1, "RE"] - nei[nei$CCV == 1, "LE"])
+  nei$IPI <- NA
+  nei[nei$CCV == 1, "IPI"] <- (ccv_df[ccv_df$SEGMENT == "C2", "NONS..ms."] - ccv_df[ccv_df$SEGMENT == "C1", "NOFFS..ms."])
+  
+  # add speaker column
+  nei$SPEAKER <- df[1,"SPEAKER"]
+  
+  return(nei)
+}
+```
+Create a new datafram that contains the relevant values for us
+```{r}
+short_08 <- easyfun(vp08)
+short_09 <- easyfun(vp09)
+# remove hablar_06 and hablar_03 -> IPI & normIPI outlier, to large & negative
+short_09 <- short_09[short_09$SOURCE != "hablar_06" & short_09$SOURCE != "hablar_03", ]
+new_df <- rbind(short_08, short_09)
+new_df$STRESS <- as.factor(new_df$STRESS)
+head(new_df)
+
+```
+
+### Some sanity checks:
+
+
+```{r}
+sum(new_df$LE < new_df$RE) # left edge is left to the right edge
+sum(new_df$RE < new_df$ANC) # anchor is right to the right edge
+sum(new_df$CC < new_df$ANC) # C-center is left to anchor
+```
+Since there are 257 rows, there is one instance where the right edge is before the left edge this instance is coplan_01 of the first speaker. I will investigate that later, but first let's just remove the instance for the time being.
+
+```{r}
+new_df <- new_df[new_df$LE < new_df$RE,]
+instances <- nrow(new_df)
+write(instances, file = "text/numbers/instances.txt")
+instances
+```
+```{r}
+#Add column with item names
+new_df$WORD <- sub(pattern = "([^\\d]+)_\\d{2}.*",replacement = "\\1", x = new_df$SOURCE)
+```
+
+### Now calculating some relative standard deviations
+```{r}
+stress <- new_df[new_df$STRESS == 1, ]
+nostress <- new_df[new_df$STRESS == 0, ]
+
+
+relsds_fun <- function(df){
+  le <- sd(df$ANC - df$LE)/mean(df$ANC - df$LE)*100
+  cc <- sd(df$ANC - df$CC)/mean(df$ANC - df$CC)*100
+  re <- sd(df$ANC - df$RE)/mean(df$ANC - df$RE)*100
+  return(c(le, cc, re))
+} 
+# stressed 
+  # anchor - le
+s_le <- (stress$ANC - stress$LE) /mean(stress$ANC - stress$LE)*100
+  # anchor - cc
+s_cc <- (stress$ANC - stress$CC)/mean(stress$ANC - stress$CC)*100
+  # anchor - re
+s_re <- (stress$ANC - stress$RE)/mean(stress$ANC - stress$RE)*100
+# unstressed
+  # anchor - le
+n_le <- (nostress$ANC - nostress$LE)/mean(nostress$ANC - nostress$LE)*100
+  # anchor - cc
+n_cc <- (nostress$ANC - nostress$CC)/mean(nostress$ANC - nostress$CC)*100
+  # anchor - re
+n_re <- (nostress$ANC - nostress$RE)/mean(nostress$ANC - nostress$RE)*100
+
+
+rel_sds <- data.frame("Stressed_syllable" = c("yes", "no"),
+           LE = c(sd(s_le), sd(n_le)),
+           CC = c(sd(s_cc), sd(n_cc)),
+           RE = c(sd(s_re), sd(n_re))
+           ) 
+rel_sds
+
+```
+```{r}
+print(xtable(rel_sds, caption = "Relative standard deviations  of interval length between left edge (LE), C-Center (CC) and right edge (RE) and the anchor, respectively.\\label{tab:rel_sds}", type = "latex"), file = "text/tables/rel_sds.tex")
+```
+Distribtution of the normalized interval lengths (first row not stressed, second row stressed)
+```{r}
+par(mfrow = c(2,3))
+boxplot(n_le, ylim = c(0,2))
+boxplot(n_cc, ylim = c(0,2))
+boxplot(n_re, ylim = c(0,2))
+boxplot(s_le, ylim = c(0,2))
+boxplot(s_cc, ylim = c(0,2))
+boxplot(s_re, ylim = c(0,2))
+
+```
+
+
+
+Let's look closer
+
+```{r}
+
+blA <- new_df[new_df$WORD == "molar"|new_df$WORD == "hablar",]
+blE <- new_df[new_df$WORD == "soler"|new_df$WORD == "tobler",]
+plA <- new_df[new_df$WORD == "molar"|new_df$WORD == "coplar",]
+plE <- new_df[new_df$WORD == "soler"|new_df$WORD == "saplen",]
+bla <- new_df[new_df$WORD == "molan"|new_df$WORD == "hablan",]
+ble <- new_df[new_df$WORD == "polen"|new_df$WORD == "doblen",]
+pla <- new_df[new_df$WORD == "molan"|new_df$WORD == "coplan",]
+ple <- new_df[new_df$WORD == "polen"|new_df$WORD == "soplen",]
+
+x <- list(blA, blE, plA, plE, bla, ble, pla, ple)
+all_pairs <- data.frame(Landmark = c("LE", "CC", "RE"),
+                        sapply(x, relsds_fun))
+names(all_pairs) <- c("Landmark", "blA","blE", "plA", "plE", "bla", "ble", "pla", "ple")
+
+print(xtable(all_pairs, caption = "Relative standard deviations of interval length between left edge (LE), C-Center (CC) and right edge (RE) and the anchor, respectively. Broken down by syllable type; capitalization of letters indicates stress.\\label{tab:all_pairs}", type = "latex"), file = "text/tables/rel_sds_pairs.tex")
+all_pairs
+```
+
+
+### Let's look at the IPI
+
+```{r}
+boxplot(new_df$IPI, outline = FALSE)
+
+#new_df$CCV <- as.factor(new_df$CCV)
+
+plot <- ggplot(data = subset(new_df, !is.na(IPI)), aes(x = STRESS, y = normIPI)) +
+  geom_violin() + 
+  stat_summary(fun = "mean",
+               geom = "point",
+               aes(color = "Mean")) +
+  stat_summary(fun = "median",
+               geom = "point",
+               aes(color = "Median")) +
+  #scale_x_discrete(labels=WORD)+
+  theme(axis.text.x = element_text(angle = 20))+
+  scale_colour_manual(values = c("red", "blue"), # Colors
+                      name = "")
+
+plot + ggtitle("IPI") +
+  xlab("Word") + ylab("Normalized IPI")
+
+ggsave("text/figures/IPI_per_word_vio.png",
+       height = 4,
+       width = 6.4,
+       units = "in",
+       dpi = 600)
+
+t.test(new_df[new_df$STRESS == 0, "IPI"], new_df[new_df$STRESS == 1, "IPI"])
+plot 
+
+
+```
+
+How does stress lengthen the syllables?
+```{r}
+new_df$LEN <- new_df$ANC - new_df$LE
+
+plot2 <- ggplot(data = new_df, aes(x = STRESS, y = LEN)) +
+  geom_violin() + 
+  stat_summary(fun = "mean",
+               geom = "point",
+               aes(color = "Mean")) +
+  stat_summary(fun = "median",
+               geom = "point",
+               aes(color = "Median")) +
+  #scale_x_discrete(labels=WORD)+
+  #theme(axis.text.x = element_text(angle = 20))+
+  scale_colour_manual(values = c("red", "blue"), # Colors
+                      name = "")
+
+plot2 +  xlab("Stress") + ylab("Syllable length in ms") #ggtitle("Violing plot of syllable length depending on stress") +
+
+ggsave("text/figures/syll_length.png",
+       height = 4,
+       width = 6.4,
+       units = "in",
+       dpi = 600)
+```
+
+```{r}
+len_unstr <- new_df[new_df$STRESS == 0,"LEN"]
+len_str <- new_df[new_df$STRESS == 1,"LEN"]
+
+ttest <- t.test(len_str, len_unstr, alternative = "greater")
+write(ttest$p.value, file = "text/numbers/ttest_length_pvalue.txt")
+cwrite(ttest$method, file = "text/numbers/ttest_length_method.txt")
+write(round(ttest$estimate[1]), file = "text/numbers/ttest_length_estx.txt")
+write(round(ttest$estimate[2]), file = "text/numbers/ttest_length_esty.txt")
+
+```
+
+
+

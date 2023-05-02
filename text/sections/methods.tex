@@ -1,0 +1,39 @@
+\documentclass[../Proposal.tex]{subfiles}
+
+\begin{document}
+
+% 3.1	Stimuli: Specify your set of stimuli in the form of a table, listing all the stimuli you chose (and for those comparing stimuli, the comparison pairs).
+
+% Corpus: involved words
+% always second syllable of disyllabic words
+
+The set of stimuli for this study is a part of a larger corpus of Spanish. The annotated and analyzed subcorpus contains stimuli with word-medial clusters. Stimuli with word initial clusters, where the first syllable is the target of investigation are also part of the whole corpus but not of this analysis.
+To assess the effects of syllable segments, the following variables were varied systematically:
+\begin{enumerate}[label=(\roman*)]
+    \item voicedness of the first consonant in clusters, which are in this case the bilabial plosives /p,b/
+    \item the vowel in the nucleus being either /a/ or /e/
+    \item whether or not the target syllables were stressed or not.
+\end{enumerate}
+These stimuli were in pairs of CVC- and CCVC- syllables, where second consonant of the cluster (and only C of the CV - syllables) was the lateral /l/. The coda was always a coronal; either /n/ or /r/. In \cref{tab:corpus} the pairs of words containing the relevant syllables are displayed. Spanish does not allow more than two consonants in syllable onsets and one consonant in codas (\cite[]{hirschfeld1983ergebnisse}), so an approach as in e.g. \cite{byrd1995c} where CVC, CCVC and CCCVS sequences were compared to each other is not possible. Instead, CVC / CCVC-pairings must suffice.
+
+\input{tables/corpus.tex}
+
+% 3.2	Measurements: Specify exactly what you are measuring in these stimuli. For some projects, there are multiple ways of measuring the essential variables for your research.
+% Experimental method
+The target words were embedded in the sentence \textit{``Que diga [-word-] (a)fuera de contexto''}. In ten to eleven repetitions per word this sentence was uttered by two male Spanish Speakers (one from Valladolid and on from Galicia, also speaking Gallego, but Castellano at school and with family) while the tongue movements were recoded by 3D Electromagnetic Articulometry (EMA). The EMA sensors were placed on the lower lip, upper lip, jaw, upper incisor, tongue tip, tongue mid and tongue back of the participants.
+The relevant time stamps were retrieved by labelling the movements of the relevant articulators (i.e. the relevant sensors) with respect to the segments of the syllables. The relevant articulators were: the tongue tip for /n/ and /t/ and the lower and upper lip for /p/ and /b/. For the labials, the lip aperture (LA, the magnitude of the space between the two lip sensors) was analyzed. The lower lip movement (LL) was taken into consideration as well, but since LA and LL almost always yielded the same timestamps, I chose to only include LA in my analysis.\\
+% Labelling
+The labelling of the gestures was done with the help of the mview software, which is a set of scripts developed by Mark Tiede at Haskins Laboratories, implemented in Matlab.
+The goal was to label the gestural on- and offset, the nucleus on- and offset (target and release) and the point of maximal constriction (midpoint).
+% How labels were found
+A gesture label is found by the algorithm by searching two local tangential velocity peaks around the supposed midpoint of a gesture defined within a user-specified time interval. These peaks should be artifacts of the opening and closing parts of an articulatory gesture of the articulator trajectory. The gestural onset was chosen as a point before the first velocity peak, where the velocity exceeded a certain threshold (20\%) of the first peak velocity, the target as a point where the velocity fell below the threshold after the first velocity peak. The release and gestural offset were marked analogous to this at the second velocity peak and the point of maximal constriction was marked at the midpoint between target and release.\\
+% what is ANC, LE, RE and CC?
+The following landmarks were measured: left edge as the target of the (first) consonant in the onset, right edge as the release of the (second) consonant in the onset. The so-called c-center is the midpoint between the left and the right edge. Finally, also an anchor (right delimiting landmark) to determine the intervals is measured. What part of the postvocalic gesture is chosen as anchor can differ. \cite{sotiropoulou2020global} test three different landmarks: the target of the coda consonant or its maximal constriction and the ``spacial extremum'' of the nucleus vowel. My analysis only includes the point of maximal constriction of the coda consonant.\\
+% weird n & other exceptions and outliers
+A subset of the data posed some problems while labelling, because of prevocalic nasal reduction in on individual. Some coda-/n/ were difficult to label and only in the y-Dimension (lateral movements), a high enough velocity change was found to mark the landmarks of a gesture. Also in some other cases, where overall signals did not yield a result that was at least a bit congruent to the audio signal, the dimensionality of the signal was reduced to gain a label
+This should overall not be a problem to the analysis, since the focus here is on temporal relations which should theoretically stay the same no matter in which dimension.\\
+% Analysis:
+To determine whether global or local organization plays a role, the stability of c-center to anchor interval and right edge to interval will be calculated with the help of the relative standard deviation (RSD) of these intervals. For the sake of completeness, also the left edge to anchor interval will be part of the analysis. The interval with the lowest RSD value will be the interval that remains the most stable over all instances. 
+I will look at how stress influences these values and also how it influences the syllable length in this dataset. All analyses and graphic generation were carried out using R (\cite{R}).
+
+\end{document}

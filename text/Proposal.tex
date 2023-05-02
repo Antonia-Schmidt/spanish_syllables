@@ -1,0 +1,128 @@
+\documentclass[a4paper,12pt]{article}               %article & Schriftgröße
+\usepackage[a4paper, margin=2.75cm]{geometry}        % Margin
+\usepackage[utf8]{inputenc}
+%\usepackage[onehalfspacing]{setspace}              % 1.5 spacing
+\usepackage{mathptmx} 
+
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{0pt}
+\setlength{\voffset}{-15pt}
+
+\usepackage[T1]{fontenc} % Use European encoding
+\usepackage[utf8]{inputenc} % Use UTF-8 encoding
+\usepackage{charter} % Use the Charter font
+\usepackage{microtype} % Slightly tweak font spacing for aesthetics
+
+\usepackage{graphicx}
+\usepackage{enumitem}
+
+\usepackage{amsmath}
+\usepackage{multirow}
+
+\usepackage{float} % Improved interface for floating objects
+
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise]{cleveref} 
+
+
+
+\usepackage[safe]{tipa}
+\usepackage{linguex}
+
+\usepackage{natbib}
+
+\usepackage{subfiles}
+
+\usepackage[all]{nowidow} 
+\usepackage{fancyhdr} % Headers and footers
+\pagestyle{fancy} % All pages have headers and footers
+
+
+\usepackage[autostyle]{csquotes}
+\MakeOuterQuote{"}
+
+\title{The role of stress in the temporal organization of Spanish syllable onsets}
+\author{Antonia Schmidt}
+\date{November 07, 2022}
+
+
+\clubpenalty = 10000
+\widowpenalty = 10000
+
+
+
+
+\renewcommand{\baselinestretch}{1.5} %relative line spacing
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   TO DO : 
+    % Sinnvolle Absätze
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%\maketitle
+
+%%%Block Hausarbeit:
+\begin{center}
+    \begin{large}
+    Seminar: \textit{Atelier in Experimental and Computational Phonology}\\
+    Prof. Ph.D. Adamantios Gafos
+    \end{large}
+    \end{center}
+    %%%Ende Block Hausarbeit
+    
+    \title{The role of stress in the temporal organisation of Spanish syllable onsets}
+    \date{\vspace{-5ex}}
+    {\let\newpage\relax\maketitle}
+    \thispagestyle{empty}
+        
+        \begin{center}
+        \begin{large}
+        %\author{Antonia Schmidt}\\
+        \end{large}
+        \url{antonia.schmidt.2@uni-potsdam.de}\\
+        Matrikelnr.:  8152706\\
+        \vspace{3cm}
+        \begin{large}
+            \date{\today} \\
+             \end{large}
+        \end{center}
+    
+    \pagestyle{headings}
+    %\maketitle
+    
+    
+    %\bibliographystyle{alpha}
+    \newpage
+
+
+\section{Introduction}
+\subfile{sections/introduction}
+
+
+
+\section{Related Work}
+\subfile{sections/literature.tex}
+
+
+\section{Methodology}
+\label{sec:methods}
+\subfile{sections/mefods.tex}
+
+
+
+\section{Results and Discussion}
+\subfile{sections/results.tex}
+
+
+\section{Conclusion}
+\subfile{sections/conclusion.tex}
+
+\newpage
+\bibliographystyle{apalike}
+\bibliography{bibliography}
+
+
+\end{document}
+
